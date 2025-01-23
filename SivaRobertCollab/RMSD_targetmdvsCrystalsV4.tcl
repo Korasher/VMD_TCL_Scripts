@@ -134,15 +134,18 @@ proc getcommonresids {mol1 mol2} {
 }
 # find the chain names, or if there aren't any, the segnames that are in the current molecule
 proc getchain_segnames {molid} {
+	global errorlog
 	set test [atomselect $molid "all"]
 	set chains [lsort -unique [$test get chain]]
 	set segnames [lsort -unique [$test get segname]]
-	if {[llength $chains] == 2} {
-		return [list chains $chains]
-	} elseif {[llength $segnames] == 2} {
+	#puts $chains
+	#puts "$segnames [llength $segnames]"
+	if {[string trim $segnames] != "{}"} {
 		return [list segnames $segnames]
+	} elseif {[string trim $chains] != "{}" } {
+		return [list chains $chains]
 	} else {
-		#puts "ERROR could not find 2 distinct segnames or chains"
+		puts $errorlog "ERROR could not find any segnames or chains"
 		return
 	}
 }
