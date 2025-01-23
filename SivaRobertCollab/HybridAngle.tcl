@@ -92,17 +92,17 @@ set otherroot "D:/OneDrive - University of Utah/BidoneLab/integrin/siva_robertCo
 cd $root
 # beginning of work code
 mol delete all
-set RMSDlog [open HybridAngle.log w+]
-set errorlog [open HybridAngle.err w+]
-# load the state1 structure
+
+# load the state1 and other closed structure
 cd "${otherroot}"
-puts $RMSDlog "working directory is [pwd]"
+
 mol new 3zdy_2.psf waitfor all
 mol addfile 3zdy_2.pdb waitfor all
 mol rename top state1_3zdy_2
 mol new 3t3p.psf waitfor all
 mol addfile 3t3p.pdb waitfor all
 mol rename top 3t3p
+
 # load the target_md pdbs from Siva
 foreach x $subfolders {
 	cd "${root}/target_md_${x}"
@@ -111,34 +111,45 @@ foreach x $subfolders {
 }
 # get a list of all the loaded molecules
 set mols [molinfo list]
+
+# move to the correct directory and open files for writing
+cd $root
+set fileid [open HybridAngles.dat w]
+set RMSDlog [open HybridAngle.log w+]
+set errorlog [open HybridAngle.err w+]
+puts $RMSDlog "working directory is [pwd]"
+
 # rename the first and second chains or segnames to A and B or PROA and PROB respectively
 foreach y $mols {
 	set chains [getchain_segnames $y]
 	setchainnames $chains $y
 }
-cd $root
-set fileid [open HybridAngles.dat w]
-# start the actual comparisons (align, measure angle)
+
+# start the actual comparisons (align and measure angle)
 for {set zim 0 } {$zim <= $number} {incr zim} {
-	#define atom selection for the appropriate domains
+	# Make atom selection for the appropriate domains
 	set hy1 [atomselect [lindex $mols $zim] "segname PROB and (resid 58 to 109 or resid 353 to 432) and name CA and not hydrogen"]
 	set bi [atomselect [lindex $mols $zim] "segname PROB and resid 110 to 353 and name CA and not hydrogen"]
 
 	# measure the angle of the hybrid domain in all strings in relation to the position of the hybrid domain in the closed state. state1 (3zdy_2.pdb)
-	for { set ye 1} {$ye < [llength $mols] } {incr ye} {
+	for { set ye 2} {$ye < [llength $mols] } {incr ye} {
 		# Define the hybrid and beta-I (Beta-A) domain in the string molecule
 		set hybrid [atomselect [lindex $mols $ye] "segname PROB and (resid 58 to 109 or resid 353 to 432) and name CA and not hydrogen"]
 		set stringbi [atomselect [lindex $mols $ye] "segname PROB and resid 110 to 353 and name CA and not hydrogen"]
-		set fit [measure fit $stringbi $bi]; $stringbi delete;
+		# align the beta-I domains
+		set fit [measure fit $stringbi $bi];
 		set all [atomselect [lindex $mols $ye] all]
 		$all move $fit
+		
 		# updating all the selections after the alignment for paranoia's sake.
 		$hy1 update; $bi update; $hybrid update; $stringbi update
-		# Define the coordinates of the third point
+		
+		# Define the coordinates of the three points
 		set point1 [measure center $hy1 weight mass];
 		set point2 [measure center $bi weight mass];
 		set point3 [measure center $hybrid weight mass];
 		$hybrid delete; $stringbi delete; $all delete
+		
 		# Calculate vectors
 		set vectorA [vector_subtract $point1 $point2]
 		set vectorB [vector_subtract $point3 $point2]
@@ -151,7 +162,7 @@ for {set zim 0 } {$zim <= $number} {incr zim} {
 		set angle_degrees [expr {$angle * 180 / 3.141592653589793}]
 		
 		# Output the result
-		puts $fileid "Hybrid Domain Swing-out is $angle_degrees degrees. Reference Molecule is [molinfo [lindex $mols 0] get name]. Comparison Molecule is [molinfo [lindex $mols $ye] get name]"
+		puts $fileid "Hybrid Domain Swing-out is $angle_degrees degrees. Reference Molecule is [molinfo [lindex $mols $zim] get name]. Comparison Molecule is [molinfo [lindex $mols $ye] get name]"
 	
 	}
 	$bi delete; $hy1 delete; 
