@@ -10,7 +10,7 @@
 set number 18
 # adjust these as necessary
 # where is the iteration file?
-set root "D:/OneDrive - University of Utah/BidoneLab/integrin/siva_robertCollab/iter147"
+set root "D:/OneDrive - University of Utah/BidoneLab/integrin/siva_robertCollab/string/iter0_onlyprotein/iter0"
 # assuming the subfolders of iter* are named by increasing number
 set subfolders "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18"
 # where are the pdb files that you prepared for this script to use? This is also the path where the RMSD output will be written to and
@@ -167,9 +167,9 @@ proc getRMSD {finalselecttext finalalltext ye} {
 	animate write psf "./[molinfo [lindex $mols $refmol] get name]_alignedStructures/[lindex $pdbname 0]_aligned_CA.psf"  sel [atomselect [lindex $mols $ye] $finalselecttext] [lindex $mols $ye]
 	animate write pdb "./[molinfo [lindex $mols $refmol] get name]_alignedStructures/[lindex $refpdb 0]_[lindex $pdbname 0]_CA.pdb" sel [atomselect [lindex $mols $refmol] $finalselecttext] [lindex $mols $refmol]
 	
-	animate write pdb "./all_atom_aligned_structures/[molinfo [lindex $mols $refmol] get name]_alignedStructures/[lindex $pdbname 0]_aligned.pdb" sel [atomselect [lindex $mols $ye] $finalalltext] [lindex $mols $ye]
-	animate write psf "./all_atom_aligned_structures/[molinfo [lindex $mols $refmol] get name]_alignedStructures/[lindex $pdbname 0]_aligned.psf"  sel [atomselect [lindex $mols $ye] $finalalltext] [lindex $mols $ye]
-	animate write pdb "./all_atom_aligned_structures/[molinfo [lindex $mols $refmol] get name]_alignedStructures/[lindex $refpdb 0]_[lindex $pdbname 0].pdb" sel [atomselect [lindex $mols $refmol] $finalalltext] [lindex $mols $refmol]
+	#animate write pdb "./all_atom_aligned_structures/[molinfo [lindex $mols $refmol] get name]_alignedStructures/[lindex $pdbname 0]_aligned.pdb" sel [atomselect [lindex $mols $ye] $finalalltext] [lindex $mols $ye]
+	#animate write psf "./all_atom_aligned_structures/[molinfo [lindex $mols $refmol] get name]_alignedStructures/[lindex $pdbname 0]_aligned.psf"  sel [atomselect [lindex $mols $ye] $finalalltext] [lindex $mols $ye]
+	#animate write pdb "./all_atom_aligned_structures/[molinfo [lindex $mols $refmol] get name]_alignedStructures/[lindex $refpdb 0]_[lindex $pdbname 0].pdb" sel [atomselect [lindex $mols $refmol] $finalalltext] [lindex $mols $refmol]
 	#puts "[molinfo [lindex $mols $ye] get name] vs $refpdb RMSD is [measure rmsd $align1 $align2]"
 	set rmsds " [measure rmsd $align1 $align2]"
 	$align2 delete
@@ -228,12 +228,12 @@ foreach y $mols {
 	set chains [getchain_segnames $y]
 	setchainnames $chains $y
 }
-cd $otherroot
+cd $root
 # start the actual comparisons (align, RMSD, writepdb)
 for {set zim 0 } {$zim <= $number} {incr zim} {
 	set refmol end-${zim}
 	file mkdir "[molinfo [lindex $mols $refmol] get name]_alignedStructures"
-	file mkdir "./all_atom_aligned_structures/[molinfo [lindex $mols $refmol] get name]_alignedStructures"
+	#file mkdir "./all_atom_aligned_structures/[molinfo [lindex $mols $refmol] get name]_alignedStructures"
 	# compare the resids in the desired reference molecule to the comparison molecule in a loop until all molecules have been compared to the reference.
 	for { set ye 0} {$ye < [expr {[llength $mols] - ($number + 1) }] } {incr ye} {
 		puts "comparing molid [lindex $mols $ye] to molid [lindex $mols $refmol ]"
@@ -251,7 +251,7 @@ for {set zim 0 } {$zim <= $number} {incr zim} {
 			unset finalalltext
 		}	
 	}
-	cd $otherroot 
+	cd $root 
 	set fileid [open RMSD_[molinfo [lindex $mols $refmol] get name]_v3.dat w]
 	puts $fileid $rmsds
 	close $fileid
