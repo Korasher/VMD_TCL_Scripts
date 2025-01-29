@@ -79,7 +79,7 @@ proc magnitude {vector} {
 }
 
 # Which molecules do you want to be references? 0 = first molecule loaded, 1 = first and second molecule loaded, etc.
-set number 1
+set number 0
 # adjust these as necessary
 # where is the iteration file?
 set root "D:/OneDrive - University of Utah/BidoneLab/integrin/siva_robertCollab/final_string/analyze_orient"
@@ -95,15 +95,12 @@ mol delete all
 
 # load the state1 and other closed structure
 cd "${otherroot}"
-
-mol new 3t3p_2.psf waitfor all
-mol addfile 3t3p_2.pdb waitfor all
-mol rename top closed_3t3p_2
 mol new 3t3p.psf waitfor all
 mol addfile 3t3p.pdb waitfor all
-mol rename top closed_3t3p
-
-
+mol rename top closed_2vdr
+mol new 2vdr.psf waitfor all
+mol addfile 2vdr.pdb waitfor all
+mol rename top open_2vdr
 # # load the first string of pdbs from Siva
 # foreach x $subfolders {
 # 	cd "${root}/target_md_${x}"
@@ -111,17 +108,17 @@ mol rename top closed_3t3p
 # 	mol rename top "target_md_${x}"
 # }
 # load the final_string pdbs from Siva
-foreach x $subfolders {
-	cd "${root}/target_md_${x}"
-	mol new minimize-notwater-nocofactors_CA_aligned0Plane.pdb waitfor all
-	mol rename top "target_md_${x}"
-}
+# foreach x $subfolders {
+# 	cd "${root}/target_md_${x}"
+# 	mol new minimize-notwater-nocofactors_CA_aligned0Plane.pdb waitfor all
+# 	mol rename top "target_md_${x}"
+# }
 # get a list of all the loaded molecules
 set mols [molinfo list]
 
 # move to the correct directory and open files for writing
 cd $root
-set fileid [open HybridAnglesFinal.dat w]
+set fileid [open HybridAngles_3t3p_2vdr.dat w]
 set RMSDlog [open HybridAngle.log w+]
 set errorlog [open HybridAngle.err w+]
 puts $RMSDlog "working directory is [pwd]"
@@ -139,7 +136,7 @@ for {set zim 0 } {$zim <= $number} {incr zim} {
 	set bi [atomselect [lindex $mols $zim] "segname PROB and resid 110 to 353 and name CA and not hydrogen"]
 
 	# measure the angle of the hybrid domain in all strings in relation to the position of the hybrid domain in the closed state. state1 (3zdy_2.pdb)
-	for { set ye 2} {$ye < [llength $mols] } {incr ye} {
+	for { set ye 1} {$ye < [llength $mols] } {incr ye} {
 		# Define the hybrid and beta-I (Beta-A) domain in the string molecule
 		set hybrid [atomselect [lindex $mols $ye] "segname PROB and (resid 58 to 109 or resid 353 to 432) and name CA and not hydrogen"]
 		set stringbi [atomselect [lindex $mols $ye] "segname PROB and resid 110 to 353 and name CA and not hydrogen"]
